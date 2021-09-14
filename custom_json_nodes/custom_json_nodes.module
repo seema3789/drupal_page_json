@@ -1,0 +1,51 @@
+<?php
+
+/**
+ * Implements hook_form_alter() to add API Key field to
+ * system configuration form.
+ *
+ */
+function custom_json_nodes_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+  if ($form_id == 'system_site_information_settings') {
+    $site_config =  \Drupal::config('system.site');
+    //Add new field to manage site API Key.
+    $form['site_api_key'] = [
+      '#type' => 'textfield',
+      '#title' => t('Site Api Key'),
+      '#default_value' => 
+        $site_config->get('siteapikey') != null 
+        ? $site_config->get('siteapikey') : 'No API Key yet',
+      '#required' => TRUE,
+    ];
+
+    $form['actions']['submit']['#value'] = t('Update Configuration');
+
+    //Add a custom validation handler to validate the API Key.
+    $form['#validate'][] = 'custom_json_nodes_validate';
+
+    // Add a custom submit handler to save the API Key to the config file.
+    $form['actions']['submit']['#submit'][] = 'custom_json_nodes_submit';
+  }
+}
+
+/**
+ * Validation handler
+ *
+ */
+function custom_json_nodes_validate(&$form, \Drupal\Core\Form\FormStateInterface $form_state) {
+  if($form_state->getValue('site_api_key') != null) {
+    //Check for white spaces
+    if (preg_match('/\s/',$form_state->getValue('site_api_key')) > 0) {
+      $form_state->setErrorByName('site_api_key', t('API key is not valid'));
+    }
+  }
+}
+
+/**
+ * Submit handler
+ *
+ */
+function custom_json_nodes_submit(&$form, \Drupal\Core\Form\FormStateInterface $form_state) {
+  $site_config = \Drupal::service('config.factory')->getEditable('system.site');
+  $site_config->set('siteapikey', $form_state->getValue('site_api_key'))->save();
+}

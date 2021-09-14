@@ -1,0 +1,7 @@
+custom_json_nodes.page_json_nodes:
+  path: '/page_json/{apikey}/{nid}'
+  defaults:
+    _controller: '\Drupal\custom_json_nodes\Controller\PageJsonCustomHandler:getNodeJson'
+    _title: 'Page JSON'
+  requirements:
+    _permission: 'access content'
